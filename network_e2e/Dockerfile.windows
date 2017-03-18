@@ -1,0 +1,7 @@
+FROM microsoft/windowsservercore
+ARG SDK_ROOT
+RUN @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))" && SET PATH=%PATH%;%ALLUSERPROFILE%\chocolatey\bin
+RUN choco install nodejs -yfd
+RUN choco install docker -yfd
+ENV SDK_ROOT=%SDK_ROOT%
+RUN %SDK_ROOT%\build\dev-setup.cmd --network_e2e

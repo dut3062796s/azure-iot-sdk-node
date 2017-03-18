@@ -1,0 +1,21 @@
+{
+  "name": "test-devices",
+  "version": "0.0.1",
+  "description": "Helpers to create and delete devices from an IoT Hub",
+  "bin": {
+    "create-device": "./create-device.js",
+    "delete-device": "./delete-device.js"
+  },
+  "main": "create-device.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Microsoft Corp.",
+  "license": "MIT",
+  "dependencies": {
+    "azure-iot-device": "^1.1.7",
+    "azure-iothub": "^1.1.7",
+    "uuid": "^3.0.1"
+  }
+}
