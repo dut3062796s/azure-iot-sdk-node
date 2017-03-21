@@ -1,3 +1,5 @@
+var uuid = require('uuid');
+
 var Registry = require('azure-iothub').Registry;
 var ServiceConnectionString = require('azure-iothub').ConnectionString;
 var DeviceConnectionString = require('azure-iot-device').ConnectionString;

@@ -1,13 +1,13 @@
-
+var util = require('util');
 var exec = require('child_process').exec;
-var network = require('network');
+var os = require('os');
 
 var WIN_DISABLE_NIC_CMD = 'powershell "Get-NetAdapter | Enable-NetAdapter -Confirm:$false"';
 var LINUX_DISABLE_NIC_CMD = 'ifdown eth0';
-var DOCKER_DISCONNECT_NETWORK = 'docker disconnect %s %s';
-var WIN_DOCKER_SOCKET = 'tcp://%s:2375';
+var DOCKER_DISCONNECT_NETWORK = 'docker -H %s network disconnect %s %s';
+var WIN_DOCKER_SOCKET = process.env.DOCKER_HOST;
 var LINUX_DOCKER_SOCKET = '/var/run/docker.sock';
-var WIN_FIREWALL_RULE = 'powershell "New-NetFirewallRule -Name %s -Direction Outbound -Protocol Tcp -Action Block -RemotePort %s"';
+var WIN_FIREWALL_RULE = 'powershell "New-NetFirewallRule -DisplayName %s -Direction Outbound -Protocol Tcp -Action Block -RemotePort %s"';
 var LINUX_FIREWALL_RULE = '';
 var AMQP_FIREWALL_RULE_NAME = 'BlockAmqp';
 var MQTT_FIREWALL_RULE_NAME = 'BlockMqtt';
@@ -18,8 +18,11 @@ var HTTPS_PORT = 443;
 
 module.exports = {
   docker: {
-    disconnectNetwork: function(natName, hostname, callback) {
-      exec(util.format(DOCKER_DISCONNECT_NETWORK, natName, hostname), callback);
+    disconnectNetwork: function(callback) {
+      var socket =  module.exports[process.platform].getDockerSocket();
+      var natName = 'nat';
+      var hostname = module.exports[process.platform].getContainerId();
+      exec(util.format(DOCKER_DISCONNECT_NETWORK, socket, natName, hostname), callback);
     }
   },
   win32: {
@@ -27,16 +30,10 @@ module.exports = {
       exec(WIN_DISABLE_NIC_CMD, callback);
     },
     getContainerId: function() {
-      return process.env.COMPUTERNAME;
+      return os.hostname();
     },
     getDockerSocket: function(callback) {
-      network.get_gateway_ip(function (err, ip) {
-        if(err) {
-          return callback(err);
-        } else { 
-          return callback(null, util.format(WIN_DOCKER_SOCKET,ip));
-        }
-      });
+      return WIN_DOCKER_SOCKET;
     },
     blockAmqp: function(callback) {
       exec(util.format(WIN_FIREWALL_RULE, AMQP_FIREWALL_RULE_NAME, AMQP_PORT), callback);
@@ -56,7 +53,7 @@ module.exports = {
       return process.env.HOSTNAME;
     },
     getDockerSocket: function(callback) {
-      callback(null, LINUX_DOCKER_SOCKET);
+      return LINUX_DOCKER_SOCKET;
     },
     blockAmqp: function(callback) {
       exec(util.format(LINUX_FIREWALL_RULE, AMQP_FIREWALL_RULE_NAME, AMQP_PORT), callback);
